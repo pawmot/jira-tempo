@@ -1,0 +1,13 @@
+# IntelliJ
+.idea/
+*.iml
+target/
+out/
+
+# Gradle
+build
+.gradle/
+.gradletasknamecache
+
+# generated sources
+gen-src/
