@@ -1,0 +1,12 @@
+spring:
+  data:
+    mongodb:
+      database: jiraTempo
+      host: mongo
+  main:
+    web-application-type: reactive
+  resources:
+    static-locations: "file:/dist/"
+
+encrypt:
+  secret: "kp3j7LCeSLSX^gYJbyKsV+XJJ^&frcEj&WAC=pnTk5?hXLwVQE?Gu6dvU2X4"

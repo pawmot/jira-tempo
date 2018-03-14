@@ -1,32 +1,68 @@
 package com.pawmot.jiraTempo.web.handlers
 
-import com.pawmot.jiraTempo.web.dto.SettingsDto
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.pawmot.jiraTempo.domain.settings.Settings
+import com.pawmot.jiraTempo.domain.settings.SettingsRepository
+import com.pawmot.jiraTempo.web.dto.ReadJiraUserDto
+import com.pawmot.jiraTempo.web.dto.ReadSettingsDto
+import com.pawmot.jiraTempo.web.dto.SaveSettingsDto
+import org.bson.types.ObjectId
+import org.jasypt.util.text.TextEncryptor
+import org.springframework.core.codec.DecodingException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.body
 import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
-import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.withLock
 
 @Component
-class SettingsHandler {
-    private val rwLock: ReadWriteLock = ReentrantReadWriteLock()
-    private var settings: SettingsDto = SettingsDto(null, null)
+class SettingsHandler(private val repo: SettingsRepository, private val encryptor: TextEncryptor) {
+
+    private var settingsId: ObjectId? = null
+
+    init {
+        repo.findAll().singleOrEmpty()
+                .subscribe {
+                    settingsId = it.id
+                }
+    }
 
     fun getSettings(req: ServerRequest): Mono<ServerResponse> {
-        val rLock = rwLock.readLock()
-        rLock.withLock {
-            return ServerResponse.status(HttpStatus.OK).syncBody(settings)
-        }
+        return ServerResponse.status(HttpStatus.OK)
+                .body(
+                        if (settingsId != null)
+                            repo.findById(settingsId!!).map { it.toDto() }
+                        else
+                            Mono.just(ReadSettingsDto(null, null, null))
+                )
     }
 
     fun saveSettings(req: ServerRequest): Mono<ServerResponse> =
-            req.bodyToMono<SettingsDto>().flatMap {
-                val wLock = rwLock.writeLock()
-                wLock.withLock { settings = it }
+            req.bodyToMono<SaveSettingsDto>().flatMap { dto ->
+                val saving = repo.save(Settings(
+                        id = settingsId,
+                        jiraUrl = dto.jiraUrl!!,
+                        login = dto.user?.login!!,
+                        password = encryptor.encrypt(dto.user.password),
+                        version = dto.version)
+                )
+                saving
+            }.flatMap {
+                settingsId = it.id
                 ServerResponse.noContent().build()
-            }
+            }.onErrorResume({
+                when(it) {
+                    is JsonProcessingException -> ServerResponse.badRequest().build()
+                    is DecodingException -> ServerResponse.badRequest().build()
+                    is OptimisticLockingFailureException -> ServerResponse.status(HttpStatus.CONFLICT).build()
+                    else -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+                }
+            })
+
+    private fun Settings.toDto(): ReadSettingsDto {
+        return ReadSettingsDto(this.jiraUrl, ReadJiraUserDto(this.login), this.version)
+    }
 }

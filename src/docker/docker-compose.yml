@@ -1,0 +1,17 @@
+version: '3.4'
+
+volumes:
+  mongodb_vol:
+
+services:
+  jiraTempo:
+    image: pawmot/jira-tempo:0.1-SNAPSHOT
+    ports:
+      - 8080:8080
+
+  mongo:
+    image: mongo:3
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_vol:/data/db
