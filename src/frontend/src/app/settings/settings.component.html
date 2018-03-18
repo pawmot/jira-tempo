@@ -1,0 +1,46 @@
+<div class="form-container">
+  <h1 class="mat-display-1">Settings</h1>
+  <form (ngSubmit)="onSubmit()" #settingsForm="ngForm">
+    <mat-form-field>
+      <input type="text" id="url" name="url"
+             required
+             matInput
+             placeholder="Jira URL"
+             [(ngModel)]="model.url"
+             #url="ngModel"/>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input type="text" id="user" name="user"
+             required
+             matInput
+             placeholder="Jira User"
+             [(ngModel)]="model.user"
+             #user="ngModel"/>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input type="password" id="password" name="password"
+             required
+             matInput
+             placeholder="Jira Password"
+             [(ngModel)]="model.password"
+             #password="ngModel"/>
+    </mat-form-field>
+
+    <div>
+      <button type="submit"
+              mat-flat-button
+              [disabled]="!settingsForm.form.valid">
+        Save
+      </button>
+
+      <button type="reset"
+              mat-flat-button
+              color="warn"
+              (click)="goToHome()">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,1 +1,10 @@
-<mat-toolbar color="primary">Jira Tempo</mat-toolbar>
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span>Jira Tempo</span>
+    <span class="mat-toolbar-spacer"></span>
+    <button mat-icon-button (click)="goToSettings()">
+      <mat-icon>settings</mat-icon>
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+<router-outlet></router-outlet>

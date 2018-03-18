@@ -1,1 +1,10 @@
-@import '~@angular/material/prebuilt-themes/purple-green.css';
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+body {
+  font-family: Roboto, Arial, sans-serif;
+  margin: 0;
+}
+
+.mat-toolbar-spacer {
+  flex: 1 1 auto;
+}
