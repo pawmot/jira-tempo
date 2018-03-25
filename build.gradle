@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 buildscript {
-    ext.kotlin_ver = '1.2.30'
+    ext.kotlin_ver = '1.2.31'
 
     repositories {
         mavenCentral()
@@ -27,6 +27,9 @@ apply plugin: 'com.pawmot.dockerize-spring-boot'
 
 repositories {
     mavenCentral()
+    maven {
+        url 'https://m2proxy.atlassian.com/repository/public'
+    }
 }
 
 dependencyManagement {
@@ -50,6 +53,9 @@ dependencies {
     compile 'com.fasterxml.jackson.module:jackson-module-kotlin'
 
     compile 'org.jasypt:jasypt'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine'
 }
 
 compileKotlin {
@@ -73,7 +79,7 @@ task frontendDist() {
 
 docker {
     imageName "pawmot/jira-tempo"
-    tag project.version.toString()
+    tag project.version
 }
 
 dockerize.dependsOn(frontendDist)

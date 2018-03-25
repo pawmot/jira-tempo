@@ -28,6 +28,62 @@
              #password="ngModel"/>
     </mat-form-field>
 
+    <mat-form-field>
+      <mat-chip-list #usersList>
+        <mat-chip *ngFor="let user of model.users" [removable]="true" (remove)="removeUser(user)">
+          {{user}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        <input placeholder="Users in worklogs"
+               [matChipInputFor]="usersList"
+               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+               [matChipInputAddOnBlur]="addOnBlur"
+               (matChipInputTokenEnd)="addUser($event)"/>
+      </mat-chip-list>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-chip-list #projectsList>
+        <mat-chip *ngFor="let project of model.projects" [removable]="true" (remove)="removeProject(project)">
+          {{project}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        <input placeholder="Projects in worklogs"
+               [matChipInputFor]="projectsList"
+               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+               [matChipInputAddOnBlur]="addOnBlur"
+               (matChipInputTokenEnd)="addProject($event)"/>
+      </mat-chip-list>
+    </mat-form-field>
+
+    <h4>Periods</h4>
+    <mat-list>
+      <mat-list-item *ngFor="let period of model.periods">
+        {{period.start}} &mdash; {{period.end}}
+        <button type="button" mat-icon-button (click)="removePeriod(period)">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-list-item>
+    </mat-list>
+
+    <mat-form-field>
+      <input type="text" id="start" name="start"
+             matInput
+             placeholder="Start"
+             #start/>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input type="text" id="end" name="end"
+             matInput
+             placeholder="End"
+             #end/>
+    </mat-form-field>
+
+    <button type="button" mat-icon-button (click)="addPeriod(start.value, end.value)">
+      <mat-icon>add</mat-icon>
+    </button>
+
     <div>
       <button type="submit"
               mat-flat-button

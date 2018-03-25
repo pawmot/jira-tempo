@@ -3,9 +3,8 @@ package com.pawmot.jiraTempo.web.handlers
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.pawmot.jiraTempo.domain.settings.Settings
 import com.pawmot.jiraTempo.domain.settings.SettingsRepository
-import com.pawmot.jiraTempo.web.dto.ReadJiraUserDto
-import com.pawmot.jiraTempo.web.dto.ReadSettingsDto
-import com.pawmot.jiraTempo.web.dto.SaveSettingsDto
+import com.pawmot.jiraTempo.domain.settings.WorklogPeriod
+import com.pawmot.jiraTempo.web.dto.*
 import org.bson.types.ObjectId
 import org.jasypt.util.text.TextEncryptor
 import org.springframework.core.codec.DecodingException
@@ -36,7 +35,7 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
                         if (settingsId != null)
                             repo.findById(settingsId!!).map { it.toDto() }
                         else
-                            Mono.just(ReadSettingsDto(null, null, null))
+                            Mono.just(ReadSettingsDto(null, null, listOf(), listOf(), listOf(), null))
                 )
     }
 
@@ -47,6 +46,9 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
                         jiraUrl = dto.jiraUrl!!,
                         login = dto.user?.login!!,
                         password = encryptor.encrypt(dto.user.password),
+                        periods = dto.periods.map { WorklogPeriod(it.start, it.end) },
+                        projects = dto.projects,
+                        users = dto.users,
                         version = dto.version)
                 )
                 saving
@@ -54,7 +56,7 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
                 settingsId = it.id
                 ServerResponse.noContent().build()
             }.onErrorResume({
-                when(it) {
+                when (it) {
                     is JsonProcessingException -> ServerResponse.badRequest().build()
                     is DecodingException -> ServerResponse.badRequest().build()
                     is OptimisticLockingFailureException -> ServerResponse.status(HttpStatus.CONFLICT).build()
@@ -63,6 +65,11 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
             })
 
     private fun Settings.toDto(): ReadSettingsDto {
-        return ReadSettingsDto(this.jiraUrl, ReadJiraUserDto(this.login), this.version)
+        return ReadSettingsDto(this.jiraUrl,
+                ReadJiraUserDto(this.login),
+                this.periods.map { WorklogPeriodDto(it.start, it.end) },
+                this.projects,
+                this.users,
+                this.version)
     }
 }

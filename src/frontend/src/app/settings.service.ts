@@ -16,7 +16,6 @@ export class SettingsService {
   }
 
   saveSettings(dto: SaveSettingsDto): Observable<object> {
-    console.log(`Saving ${dto}`);
     return this.http.put("/api/settings", dto);
   }
 }
@@ -24,6 +23,9 @@ export class SettingsService {
 export interface ReadSettingsDto {
   jiraUrl: string;
   user: ReadJiraUserDto;
+  users: string[];
+  projects: string[];
+  periods: WorklogPeriod[];
   version: number;
 }
 
@@ -34,10 +36,18 @@ export interface ReadJiraUserDto {
 export interface SaveSettingsDto {
   jiraUrl: string;
   user: SaveJiraUserDto;
+  users: string[];
+  projects: string[];
+  periods: WorklogPeriod[];
   version: number;
 }
 
 export interface SaveJiraUserDto {
   login: string;
   password: string;
+}
+
+export interface WorklogPeriod {
+  start: string;
+  end: string;
 }

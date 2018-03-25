@@ -1,0 +1,16 @@
+<div *ngFor="let wwc of model">
+  <h2>{{formatDate(wwc.worklog.start)}} &mdash; {{formatDate(wwc.worklog.end)}}</h2>
+
+  <div *ngFor="let personalLog of wwc.worklog.personalWorklogs">
+    <h4>{{personalLog.userName}}</h4>
+    <mat-table #table [dataSource]="wwc.dataSource.data[personalLog.userName]">
+      <ng-container *ngFor="let col of wwc.dataSource.columns" [matColumnDef]="col.def">
+        <mat-header-cell *matHeaderCellDef>{{ col.header }}</mat-header-cell>
+        <mat-cell *matCellDef="let row"> {{col.cellVal(row)}}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="colDefs(wwc.dataSource.columns)"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: colDefs(wwc.dataSource.columns);"></mat-row>
+    </mat-table>
+  </div>
+</div>

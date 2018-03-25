@@ -11,15 +11,19 @@ import {SettingsComponent} from './settings/settings.component';
 import {SettingsService} from './settings.service';
 import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
+import { TempoComponent } from './tempo/tempo.component';
+import { TempoService } from './tempo.service';
 
 const appRoutes: Routes = [
-  {path: 'settings', component: SettingsComponent}
+  {path: 'settings', component: SettingsComponent},
+  {path: '', component: TempoComponent }
 ];
 
 @NgModule({
   declarations: [
     AppComponent,
-    SettingsComponent
+    SettingsComponent,
+    TempoComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +36,7 @@ const appRoutes: Routes = [
       {enableTracing: !environment.production}
     )
   ],
-  providers: [SettingsService],
+  providers: [SettingsService, TempoService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

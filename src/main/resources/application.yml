@@ -2,11 +2,17 @@ spring:
   data:
     mongodb:
       database: jiraTempo
-      host: mongo
+      host: localhost
   main:
     web-application-type: reactive
   resources:
     static-locations: "file:/dist/"
+  jackson:
+    date-format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+
+jiraTempo:
+  tempoRefreshCron: "*/10 * * * * *"
 
 encrypt:
   secret: "kp3j7LCeSLSX^gYJbyKsV+XJJ^&frcEj&WAC=pnTk5?hXLwVQE?Gu6dvU2X4"
