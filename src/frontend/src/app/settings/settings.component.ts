@@ -1,11 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Directive, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {Period, Settings} from "../domain/settings/settings";
 import {Router} from "@angular/router";
 import {SaveJiraUserDto, SaveSettingsDto, SettingsService, WorklogPeriod} from "../settings.service";
-import {CompletionObserver} from "rxjs/src/Observer";
-import {Observer} from "rxjs/Observer";
 import {COMMA, ENTER, SPACE} from "@angular/cdk/keycodes";
 import {MatChipInputEvent} from "@angular/material";
+import {HttpErrorResponse} from "@angular/common/http";
+import {AbstractControl, NG_VALIDATORS, Validator} from "@angular/forms";
 
 @Component({
   selector: 'app-settings',
@@ -21,22 +21,27 @@ export class SettingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.model = new Settings(null, null, null, null, null, null, null);
+    this.model = new Settings(null, null, null, false, [], [], [], null);
     this.settingsService.getSettings()
       .subscribe(settings => {
-        if (settings != null) {
           this.model = new Settings(
             settings.jiraUrl,
             settings.user ? settings.user.login : null,
             null,
+            settings.user ? settings.user.passwordSet : false,
             settings.users,
             settings.projects,
             settings.periods.map(p => new Period(p.start, p.end)),
             settings.version);
-        } else {
-          this.model = new Settings(null, null, null, null, null, null, null);
+        },
+        (err: HttpErrorResponse) => {
+          if (err.error instanceof ErrorEvent) {
+            console.error(`Something very bad happened:`, err.error.message)
+          } else if (err.status === 404) {
+            this.model = new Settings(null, null, null, false, [], [], [], null);
+          }
         }
-      });
+      );
   }
 
   goToHome() {
@@ -87,6 +92,12 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  addPeriod(start: string, end: string) {
+    if ((start || '').trim() && (end || '').trim()) {
+      this.model.periods.push(new Period(start.trim(), end.trim()));
+    }
+  }
+
   removePeriod(period: any) {
     let index = this.model.periods.indexOf(period);
 
@@ -111,10 +122,35 @@ export class SettingsComponent implements OnInit {
         this.goToHome();
       });
   }
+}
 
-  addPeriod(start: string, end: string) {
-    if ((start || '').trim() && (end || '').trim()) {
-      this.model.periods.push(new Period(start.trim(), end.trim()));
+@Directive({
+  selector: '[requiredIf]',
+  providers: [
+    {provide: NG_VALIDATORS, useExisting:RequiredIfDirective, multi: true}
+  ]
+})
+export class RequiredIfDirective implements Validator, OnChanges {
+  @Input("requiredIf")
+  requiredIf: boolean;
+
+  validate(c: AbstractControl) {
+    let val = c.value;
+    if (!val && this.requiredIf) {
+      return {
+        requiredIf: {condition: this.requiredIf}
+      };
+    }
+    return null;
+  }
+
+  registerOnValidatorChange(fn: () => void): void { this.onChange = fn; }
+
+  private onChange: () => void;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if('requiredIf' in changes) {
+      if (this.onChange) this.onChange();
     }
   }
 }

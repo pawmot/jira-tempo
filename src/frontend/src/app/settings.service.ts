@@ -11,8 +11,7 @@ export class SettingsService {
   }
 
   getSettings(): Observable<ReadSettingsDto> {
-    return this.http.get("/api/settings")
-      .map(r => <ReadSettingsDto>r);
+    return this.http.get<ReadSettingsDto>("/api/settings")
   }
 
   saveSettings(dto: SaveSettingsDto): Observable<object> {
@@ -31,6 +30,7 @@ export interface ReadSettingsDto {
 
 export interface ReadJiraUserDto {
   login: string;
+  passwordSet: boolean;
 }
 
 export interface SaveSettingsDto {

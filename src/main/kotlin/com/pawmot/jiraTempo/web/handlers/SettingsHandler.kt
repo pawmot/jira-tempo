@@ -30,28 +30,43 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
     }
 
     fun getSettings(req: ServerRequest): Mono<ServerResponse> {
-        return ServerResponse.status(HttpStatus.OK)
-                .body(
-                        if (settingsId != null)
-                            repo.findById(settingsId!!).map { it.toDto() }
-                        else
-                            Mono.just(ReadSettingsDto(null, null, listOf(), listOf(), listOf(), null))
-                )
+        return if (settingsId != null)
+            ServerResponse.status(HttpStatus.OK).body(repo.findById(settingsId!!)
+                    .map { it.toDto() })
+        else
+            ServerResponse.notFound().build()
     }
 
     fun saveSettings(req: ServerRequest): Mono<ServerResponse> =
             req.bodyToMono<SaveSettingsDto>().flatMap { dto ->
-                val saving = repo.save(Settings(
-                        id = settingsId,
-                        jiraUrl = dto.jiraUrl!!,
-                        login = dto.user?.login!!,
-                        password = encryptor.encrypt(dto.user.password),
-                        periods = dto.periods.map { WorklogPeriod(it.start, it.end) },
-                        projects = dto.projects,
-                        users = dto.users,
-                        version = dto.version)
-                )
-                saving
+                if (dto.user.password == null) {
+                    if (settingsId == null) {
+                        throw PasswordRequired()
+                    }
+                    repo.findById(settingsId!!).map {
+                        Settings(
+                                id = settingsId,
+                                jiraUrl = dto.jiraUrl,
+                                login = dto.user.login,
+                                password = it.password,
+                                periods = dto.periods.map { WorklogPeriod(it.start, it.end) },
+                                projects = dto.projects,
+                                users = dto.users,
+                                version = dto.version)
+                    }
+                } else {
+                    Mono.just(Settings(
+                            id = settingsId,
+                            jiraUrl = dto.jiraUrl,
+                            login = dto.user.login,
+                            password = encryptor.encrypt(dto.user.password),
+                            periods = dto.periods.map { WorklogPeriod(it.start, it.end) },
+                            projects = dto.projects,
+                            users = dto.users,
+                            version = dto.version))
+                }
+            }.flatMap {
+                repo.save(it)
             }.flatMap {
                 settingsId = it.id
                 ServerResponse.noContent().build()
@@ -59,17 +74,23 @@ class SettingsHandler(private val repo: SettingsRepository, private val encrypto
                 when (it) {
                     is JsonProcessingException -> ServerResponse.badRequest().build()
                     is DecodingException -> ServerResponse.badRequest().build()
+                    is PasswordRequired -> ServerResponse.badRequest().build()
                     is OptimisticLockingFailureException -> ServerResponse.status(HttpStatus.CONFLICT).build()
-                    else -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+                    else -> {
+                        it.printStackTrace()
+                        ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+                    }
                 }
             })
 
     private fun Settings.toDto(): ReadSettingsDto {
         return ReadSettingsDto(this.jiraUrl,
-                ReadJiraUserDto(this.login),
+                ReadJiraUserDto(this.login, this.password.isNotEmpty()),
                 this.periods.map { WorklogPeriodDto(it.start, it.end) },
                 this.projects,
                 this.users,
                 this.version)
     }
+
+    class PasswordRequired : RuntimeException()
 }

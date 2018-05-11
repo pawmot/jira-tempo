@@ -49,6 +49,9 @@ class WorklogFactory private constructor(private val client: WebClient) {
                     .uri("/search")
                     .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 200, listOf("worklog")))
                     .exchange()
+                    .doOnNext {
+                        println(it)
+                    }
                     .flatMap { it.bodyToMono(JiraSearchResponse::class.java) }
                     .flatMapIterable { it.issues }
         }

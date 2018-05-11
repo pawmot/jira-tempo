@@ -3,6 +3,7 @@ export class Settings {
     public url: string,
     public user: string,
     public password: string,
+    public passwordUnknownButSet: boolean,
     public users: string[],
     public projects: string[],
     public periods: Period[],
