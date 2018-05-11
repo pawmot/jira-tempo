@@ -30,7 +30,7 @@
 
     <mat-form-field>
       <mat-chip-list #usersList>
-        <mat-chip *ngFor="let user of model.users" [removable]="true" (remove)="removeUser(user)">
+        <mat-chip *ngFor="let user of model.users" [removable]="true" (removed)="removeUser(user)">
           {{user}}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
@@ -44,7 +44,7 @@
 
     <mat-form-field>
       <mat-chip-list #projectsList>
-        <mat-chip *ngFor="let project of model.projects" [removable]="true" (remove)="removeProject(project)">
+        <mat-chip *ngFor="let project of model.projects" [removable]="true" (removed)="removeProject(project)">
           {{project}}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
