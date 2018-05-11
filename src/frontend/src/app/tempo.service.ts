@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs/Observable";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
 
 @Injectable()
 export class TempoService {
@@ -9,9 +10,8 @@ export class TempoService {
   }
 
   getWorklogs(): Observable<Worklog[]> {
-    return this.http.get("/api/worklog")
-      .map(r => <Worklog[]>r)
-      .map(ws => {
+    return this.http.get<Worklog[]>("/api/worklog")
+      .pipe(map(ws => {
         ws.forEach(w => {
           w.start = new Date(w.start);
           w.end = new Date(w.end);
@@ -30,7 +30,7 @@ export class TempoService {
         });
 
         return ws;
-      });
+      }));
   }
 }
 

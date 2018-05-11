@@ -1,8 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs/Observable";
-import 'rxjs/add/operator/map';
-import {PartialObserver} from "rxjs/Observer";
+import {Observable} from "rxjs";
 
 @Injectable()
 export class SettingsService {
