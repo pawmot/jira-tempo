@@ -37,7 +37,7 @@
         <input placeholder="Users in worklogs"
                [matChipInputFor]="usersList"
                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-               [matChipInputAddOnBlur]="addOnBlur"
+               [matChipInputAddOnBlur]="true"
                (matChipInputTokenEnd)="addUser($event)"/>
       </mat-chip-list>
     </mat-form-field>
@@ -51,7 +51,7 @@
         <input placeholder="Projects in worklogs"
                [matChipInputFor]="projectsList"
                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-               [matChipInputAddOnBlur]="addOnBlur"
+               [matChipInputAddOnBlur]="true"
                (matChipInputTokenEnd)="addProject($event)"/>
       </mat-chip-list>
     </mat-form-field>
