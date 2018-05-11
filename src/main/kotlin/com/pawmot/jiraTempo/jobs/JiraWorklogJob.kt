@@ -21,7 +21,7 @@ class JiraWorklogJob(private val repository: WorklogRepository,
     fun refreshWorklog() {
         settingsRepository.findAll().singleOrEmpty()
                 .subscribe {
-                    log.info(it.toString())
+                    log.debug("$it")
                     val pass = encryptor.decrypt(it.password)
 
                     val factory = WorklogFactory.create(it.jiraUrl, it.login, pass)

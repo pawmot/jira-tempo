@@ -14,7 +14,11 @@ data class Settings(@Id var id: ObjectId?,
                     var periods: List<WorklogPeriod>,
                     var projects: List<String>,
                     var users: List<String>,
-                    @Version var version: Long?)
+                    @Version var version: Long?) {
+    init {
+        users = users.map { it.toLowerCase() }
+    }
+}
 
 data class WorklogPeriod(var start: LocalDate, var end: LocalDate) {
     fun contains(date: LocalDate): Boolean {

@@ -41,6 +41,9 @@ class WorklogFactory private constructor(private val client: WebClient) {
                     .flatMap(this::getWorklogItems)
                     .collectList()
                     .map { Worklog(startDate = period.start, endDate = period.end, items = it) }
+                    .doOnNext {
+                        log.debug("$it")
+                    }
         }
 
         private fun getIssues(): Flux<JiraIssue> {
@@ -49,9 +52,6 @@ class WorklogFactory private constructor(private val client: WebClient) {
                     .uri("/search")
                     .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 200, listOf("worklog")))
                     .exchange()
-                    .doOnNext {
-                        println(it)
-                    }
                     .flatMap { it.bodyToMono(JiraSearchResponse::class.java) }
                     .flatMapIterable { it.issues }
         }
@@ -59,7 +59,7 @@ class WorklogFactory private constructor(private val client: WebClient) {
         private fun getWorklogItems(issue: JiraIssue): Flux<WorklogItem> {
             val key = issue.key
             return Flux.fromIterable(issue.fields.worklog.worklogs)
-                    .map { WorklogItem(it.started.toLocalDate(), it.timeSpentSeconds, it.author.name, key) }
+                    .map { WorklogItem(it.started.toLocalDate(), it.timeSpentSeconds, it.author.name.toLowerCase(), key) }
                     .filter { period.contains(it.date) && it.user in users }
         }
 
@@ -70,7 +70,7 @@ class WorklogFactory private constructor(private val client: WebClient) {
                     "worklogDate >= ${period.start} AND worklogDate <= ${period.end} AND " +
                     "worklogAuthor in (${users.joinToString()})"
 
-            log.info("Using JQL $jql")
+            log.debug("Using JQL $jql")
 
             return jql
         }
@@ -84,12 +84,3 @@ private data class JiraIssueFields(val worklog: JiraIssueWorklogField)
 private data class JiraIssueWorklogField(val startAt: Int, val maxResults: Int, val total: Int, val worklogs: List<JiraIssueWorklogFieldWorklog>)
 private data class JiraIssueWorklogFieldWorklog(val author: JiraIssueWorklogFieldWorklogAuthor, val timeSpentSeconds: Int, @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") val started: OffsetDateTime)
 private data class JiraIssueWorklogFieldWorklogAuthor(val name: String)
-
-//        client.get()
-//                .uri("/issue/DSL-88?fields=summary")
-//                .accept(MediaType.APPLICATION_JSON)
-//                .exchange()
-//                .flatMap { it.bodyToMono(JiraIssue::class.java) }
-//                .subscribe({
-//                    println(it.key)
-//                })
