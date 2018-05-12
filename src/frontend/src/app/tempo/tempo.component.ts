@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {TempoService, Worklog} from "../tempo.service";
-import {Observable, combineLatest} from "rxjs";
+import {Observable, combineLatest, concat, of, interval} from "rxjs";
+import {map, debounce, distinctUntilChanged} from "rxjs/operators";
 import {Subject} from "rxjs/internal/Subject";
-import {e} from "@angular/core/src/render3";
+import {forEach} from "@angular/router/src/utils/collection";
 
 @Component({
   selector: 'app-tempo',
@@ -13,6 +14,10 @@ export class TempoComponent implements OnInit {
 
   detailsSubject = new Subject<boolean>();
   details$ = this.detailsSubject.asObservable();
+
+  filterSubject = new Subject<string>();
+  filter$: Observable<string>;
+
   worklog: Observable<Worklog[]>;
   model: WorklogAndDataSource[];
 
@@ -20,16 +25,29 @@ export class TempoComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.details$.subscribe(console.log);
+    this.filterSubject.asObservable().subscribe(console.log);
+    this.filter$ = concat(of(""), this.filterSubject.asObservable().pipe(
+      distinctUntilChanged(),
+      debounce(() => interval(300))
+    ));
     this.worklog = this.tempoService.getWorklogs();
-    combineLatest(this.worklog, this.details$)
+
+    combineLatest(this.worklog, this.details$, this.filter$)
       .subscribe(e => {
-        const [ws, showDetails] = e;
+        const [ws, showDetails, userFilter] = e;
         ws.sort((a, b) => a.start.getTime() - b.start.getTime());
         this.model = ws.map(w => {
+          if (userFilter) {
+            w = {
+              start: w.start,
+              end: w.end,
+              personalWorklogs: w.personalWorklogs.filter(pw => pw.userName.match(userFilter))
+            };
+          }
           return new WorklogAndDataSource(w, TempoComponent.createDataSource(w, showDetails));
         })
       });
+
     this.detailsSubject.next(false);
   }
 

@@ -1,8 +1,11 @@
-<mat-sidenav-container>
-  <mat-sidenav mode="side" opened class="tempo-sidenav">
+<mat-drawer-container>
+  <mat-drawer mode="side" opened class="tempo-sidenav">
     <mat-slide-toggle (change)="detailsSubject.next($event.checked)">Details</mat-slide-toggle>
-  </mat-sidenav>
-  <mat-sidenav-content>
+    <mat-form-field>
+      <input (keyup)="filterSubject.next($event.target.value)" matInput placeholder="Filter users"/>
+    </mat-form-field>
+  </mat-drawer>
+  <mat-drawer-content>
     <mat-tab-group>
       <mat-tab *ngFor="let wwc of model" label="{{formatDate(wwc.worklog.start)}} &mdash; {{formatDate(wwc.worklog.end)}}">
         <div class="worklog-container" *ngFor="let personalLog of wwc.worklog.personalWorklogs">
@@ -19,7 +22,7 @@
         </div>
       </mat-tab>
     </mat-tab-group>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </mat-drawer-content>
+</mat-drawer-container>
 
 
