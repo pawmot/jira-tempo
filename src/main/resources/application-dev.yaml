@@ -1,3 +1,6 @@
 logging:
   level:
     com.pawmot: debug
+
+encrypt:
+  secret: "kp3j7LCeSLSX^gYJbyKsV+XJJ^&frcEj&WAC=pnTk5?hXLwVQE?Gu6dvU2X4"
