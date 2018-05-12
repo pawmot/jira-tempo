@@ -17,6 +17,7 @@ data class Settings(@Id var id: ObjectId?,
                     @Version var version: Long?) {
     init {
         users = users.map { it.toLowerCase() }
+        periods = periods.sortedBy { it.start }
     }
 }
 

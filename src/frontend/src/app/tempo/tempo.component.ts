@@ -16,6 +16,7 @@ export class TempoComponent implements OnInit {
   ngOnInit() {
     this.tempoService.getWorklogs()
       .subscribe(ws => {
+        ws.sort((a, b) => a.start.getTime() - b.start.getTime());
         this.model = ws.map(w => {
           return new WorklogAndDataSource(w, TempoComponent.createDataSource(w));
         })
