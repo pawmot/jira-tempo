@@ -48,16 +48,15 @@ class WorklogFactory private constructor(private val client: WebClient) {
         }
 
         private fun getIssues(): Flux<JiraIssue> {
-            // TODO load issues with > 20 worklogs using separate API call
             return client.post()
                     .uri("/search")
-                    .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 200, listOf("worklog")))
+                    .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 50, listOf("worklog")))
                     .exchange()
                     .doOnSuccess {
                         val maybeContentType = it.headers().contentType()
                         if (maybeContentType.isPresent) {
                             val contentType = maybeContentType.get()
-                            if(contentType != MediaType.APPLICATION_JSON_UTF8) {
+                            if (contentType != MediaType.APPLICATION_JSON_UTF8) {
                                 throw UnsupportedMediaType(contentType)
                             }
                         } else {
@@ -65,12 +64,42 @@ class WorklogFactory private constructor(private val client: WebClient) {
                         }
                     }
                     .flatMap { it.bodyToMono(JiraSearchResponse::class.java) }
+                    .doOnSuccess {
+                        log.debug("$it")
+                    }
                     .flatMapIterable { it.issues }
         }
 
         private fun getWorklogItems(issue: JiraIssue): Flux<WorklogItem> {
             val key = issue.key
-            return Flux.fromIterable(issue.fields.worklog.worklogs)
+
+            val jiraWorklogs =
+                    if (issue.fields.worklog.maxResults >= issue.fields.worklog.total) {
+                        Flux.fromIterable(issue.fields.worklog.worklogs)
+                    } else {
+                        log.debug("Issue ${issue.key} has more than 20 relevant worklogs, fetching them separatly.")
+                        client.get()
+                                .uri("/issue/$key/worklog?startAt=0&maxResults=1048576")
+                                .exchange()
+                                .doOnSuccess {
+                                    val maybeContentType = it.headers().contentType()
+                                    if (maybeContentType.isPresent) {
+                                        val contentType = maybeContentType.get()
+                                        if (contentType != MediaType.APPLICATION_JSON_UTF8) {
+                                            throw UnsupportedMediaType(contentType)
+                                        }
+                                    } else {
+                                        throw RuntimeException("No content type, panic!")
+                                    }
+                                }
+                                .flatMap { it.bodyToMono(JiraIssueWorklogResponse::class.java) }
+                                .doOnSuccess {
+                                    log.debug("$it")
+                                }
+                                .flatMapIterable { it.worklogs }
+                    }
+
+            return jiraWorklogs
                     .map { WorklogItem(it.started.toLocalDate(), it.timeSpentSeconds, it.author.name.toLowerCase(), key) }
                     .filter { period.contains(it.date) && it.user in users }
         }
@@ -90,11 +119,12 @@ class WorklogFactory private constructor(private val client: WebClient) {
 }
 
 private data class JiraSearchRequest(val jql: String, val startAt: Int, val maxResults: Int, val fields: List<String>)
+
 private data class JiraSearchResponse(val total: Int, val issues: List<JiraIssue>)
 private data class JiraIssue(val key: String, val fields: JiraIssueFields)
-private data class JiraIssueFields(val worklog: JiraIssueWorklogField)
-private data class JiraIssueWorklogField(val startAt: Int, val maxResults: Int, val total: Int, val worklogs: List<JiraIssueWorklogFieldWorklog>)
-private data class JiraIssueWorklogFieldWorklog(val author: JiraIssueWorklogFieldWorklogAuthor, val timeSpentSeconds: Int, @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") val started: OffsetDateTime)
-private data class JiraIssueWorklogFieldWorklogAuthor(val name: String)
+private data class JiraIssueFields(val worklog: JiraIssueWorklogResponse)
+private data class JiraIssueWorklogResponse(val startAt: Int, val maxResults: Int, val total: Int, val worklogs: List<JiraIssueWorklog>)
+private data class JiraIssueWorklog(val author: JiraIssueWorklogAuthor, val timeSpentSeconds: Int, @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") val started: OffsetDateTime)
+private data class JiraIssueWorklogAuthor(val name: String)
 
 data class UnsupportedMediaType(val mediaType: MediaType) : RuntimeException()
