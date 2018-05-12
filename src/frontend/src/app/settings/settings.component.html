@@ -56,43 +56,49 @@
       </mat-chip-list>
     </mat-form-field>
 
+    <!-- TODO: fix the styling hacks -->
     <h4>Periods</h4>
+
+    <div class="button-row">
+      <mat-form-field>
+        <input type="text" id="start" name="start"
+               matInput
+               placeholder="Start"
+               #start/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input type="text" id="end" name="end"
+               matInput
+               placeholder="End"
+               #end/>
+      </mat-form-field>
+
+      <button type="button" mat-icon-button (click)="addPeriod(start.value, end.value)" style="margin-top: 0">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
     <mat-list>
       <mat-list-item *ngFor="let period of model.periods">
         {{period.start}} &mdash; {{period.end}}
-        <button type="button" mat-icon-button (click)="removePeriod(period)">
+        <button type="button" mat-icon-button (click)="removePeriod(period)" style="margin-top: 0">
           <mat-icon>cancel</mat-icon>
         </button>
       </mat-list-item>
     </mat-list>
 
-    <mat-form-field>
-      <input type="text" id="start" name="start"
-             matInput
-             placeholder="Start"
-             #start/>
-    </mat-form-field>
-
-    <mat-form-field>
-      <input type="text" id="end" name="end"
-             matInput
-             placeholder="End"
-             #end/>
-    </mat-form-field>
-
-    <button type="button" mat-icon-button (click)="addPeriod(start.value, end.value)">
-      <mat-icon>add</mat-icon>
-    </button>
-
-    <!-- TODO: fix the buttons layout, remove the hardcoded width -->
-    <div class="button-row" style="width: 190px;">
-      <button type="submit"
+    <!-- TODO: fix the styling hacks -->
+    <div class="button-row">
+      <button style="margin: 5px; margin-top: 1cm"
+              type="submit"
               mat-flat-button
               [disabled]="!settingsForm.form.valid">
         Save
       </button>
 
-      <button type="reset"
+      <button style="margin: 5px; margin-top: 1cm"
+              type="reset"
               mat-flat-button
               color="warn"
               (click)="goToHome()">

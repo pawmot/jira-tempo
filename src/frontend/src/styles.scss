@@ -18,5 +18,15 @@ body {
 .button-row {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-start;
+  padding: 5px;
+}
+
+.button-row > * {
+  flex: 0 0 auto;
+  margin: 5px
+}
+
+.btn {
+  margin: 5px
 }
