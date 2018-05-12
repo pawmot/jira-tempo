@@ -14,3 +14,9 @@ body {
   position: absolute;
   width: 100%
 }
+
+.button-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}

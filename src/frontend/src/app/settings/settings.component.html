@@ -84,7 +84,8 @@
       <mat-icon>add</mat-icon>
     </button>
 
-    <div>
+    <!-- TODO: fix the buttons layout, remove the hardcoded width -->
+    <div class="button-row" style="width: 190px;">
       <button type="submit"
               mat-flat-button
               [disabled]="!settingsForm.form.valid">
