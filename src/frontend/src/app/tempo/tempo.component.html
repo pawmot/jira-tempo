@@ -6,9 +6,9 @@
     </mat-form-field>
   </mat-drawer>
   <mat-drawer-content>
-    <mat-tab-group>
+    <mat-tab-group [dynamicHeight]="true">
       <mat-tab *ngFor="let wwc of model" label="{{formatDate(wwc.worklog.start)}} &mdash; {{formatDate(wwc.worklog.end)}}">
-        <div class="worklog-container" *ngFor="let personalLog of wwc.worklog.personalWorklogs">
+        <div class="tempo-content" *ngFor="let personalLog of wwc.worklog.personalWorklogs">
           <h4>{{personalLog.userName}}</h4>
           <mat-table #table [dataSource]="wwc.dataSource.data[personalLog.userName]">
             <ng-container *ngFor="let col of wwc.dataSource.columns" [matColumnDef]="col.def">
