@@ -50,7 +50,7 @@ class WorklogFactory private constructor(private val client: WebClient) {
         private fun getIssues(): Flux<JiraIssue> {
             return client.post()
                     .uri("/search")
-                    .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 50, listOf("worklog")))
+                    .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 1048576, listOf("worklog")))
                     .exchange()
                     .doOnSuccess {
                         val maybeContentType = it.headers().contentType()
