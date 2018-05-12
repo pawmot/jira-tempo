@@ -1,6 +1,7 @@
 package com.pawmot.jiraTempo.jobs
 
 import com.pawmot.jiraTempo.domain.settings.SettingsRepository
+import com.pawmot.jiraTempo.domain.worklog.UnsupportedMediaType
 import com.pawmot.jiraTempo.domain.worklog.WorklogFactory
 import com.pawmot.jiraTempo.domain.worklog.WorklogRepository
 import org.jasypt.util.text.TextEncryptor
@@ -26,12 +27,21 @@ class JiraWorklogJob(private val repository: WorklogRepository,
 
                     val factory = WorklogFactory.create(it.jiraUrl, it.login, pass)
                     val worklogs = factory.createWorklogsFor(it.periods, it.projects, it.users)
-                    val deleteAll = repository.deleteAll()
-                    deleteAll.doOnSuccess {
-                        worklogs.doOnNext({log.info(it.toString())})
-                        repository.saveAll(worklogs)
-                                .subscribe()
-                    }.subscribe()
+                    worklogs.collectList()
+                            .doOnError {
+                                when (it) {
+                                    is UnsupportedMediaType -> log.error("Got unsupported media type: ${it.mediaType}")
+                                    is RuntimeException -> log.error("Exception:", it)
+                                }
+                            }
+                            .subscribe { ws ->
+                                log.debug("Successfully got worklogs: $ws")
+                                val deleteAll = repository.deleteAll()
+                                deleteAll.doOnSuccess {
+                                    repository.saveAll(ws)
+                                            .subscribe()
+                                }.subscribe()
+                            }
                 }
     }
 }

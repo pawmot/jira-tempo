@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.pawmot.jiraTempo.domain.settings.WorklogPeriod
 import com.pawmot.jiraTempo.jobs.JiraWorklogJob
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -52,6 +53,17 @@ class WorklogFactory private constructor(private val client: WebClient) {
                     .uri("/search")
                     .syncBody(JiraSearchRequest(createJql(period, projects, users), 0, 200, listOf("worklog")))
                     .exchange()
+                    .doOnSuccess {
+                        val maybeContentType = it.headers().contentType()
+                        if (maybeContentType.isPresent) {
+                            val contentType = maybeContentType.get()
+                            if(contentType != MediaType.APPLICATION_JSON_UTF8) {
+                                throw UnsupportedMediaType(contentType)
+                            }
+                        } else {
+                            throw RuntimeException("No content type, panic!")
+                        }
+                    }
                     .flatMap { it.bodyToMono(JiraSearchResponse::class.java) }
                     .flatMapIterable { it.issues }
         }
@@ -84,3 +96,5 @@ private data class JiraIssueFields(val worklog: JiraIssueWorklogField)
 private data class JiraIssueWorklogField(val startAt: Int, val maxResults: Int, val total: Int, val worklogs: List<JiraIssueWorklogFieldWorklog>)
 private data class JiraIssueWorklogFieldWorklog(val author: JiraIssueWorklogFieldWorklogAuthor, val timeSpentSeconds: Int, @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") val started: OffsetDateTime)
 private data class JiraIssueWorklogFieldWorklogAuthor(val name: String)
+
+data class UnsupportedMediaType(val mediaType: MediaType) : RuntimeException()
