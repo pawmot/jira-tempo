@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Pipe, PipeTransform, Sanitizer, SecurityContext} from '@angular/core';
 import {TempoService, Worklog} from "../tempo.service";
 import {Observable, combineLatest, concat, of, interval} from "rxjs";
 import {map, debounce, distinctUntilChanged} from "rxjs/operators";
@@ -63,6 +63,7 @@ export class TempoComponent implements OnInit {
         pw.issues.forEach(i => {
           let row = {};
           row["issue"] = i.key;
+          row["url"] = i.url;
           i.hours.forEach(d => {
             row[d.date.toDateString()] = d.hours;
           });

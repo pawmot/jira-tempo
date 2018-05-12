@@ -49,6 +49,7 @@ export interface PersonalWorklog {
 export interface IssueWorklog {
   key: string;
   hours: DateHours[];
+  url: string;
 }
 
 export interface DateHours {

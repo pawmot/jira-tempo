@@ -13,7 +13,13 @@
           <mat-table #table [dataSource]="wwc.dataSource.data[personalLog.userName]">
             <ng-container *ngFor="let col of wwc.dataSource.columns" [matColumnDef]="col.def">
               <mat-header-cell *matHeaderCellDef>{{ col.header }}</mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{col.cellVal(row)}}</mat-cell>
+              <mat-cell *matCellDef="let row">
+                <!-- TODO: Come up with a cleaner solution -->
+                <div *ngIf="col.cellVal(row) === 'Summary' || col.header !== 'Issue'">{{ col.cellVal(row) }}</div>
+                <div *ngIf="col.cellVal(row) !== 'Summary' && col.header === 'Issue'">
+                  <a [href]="(row['url'])" target="_blank">{{ col.cellVal(row) }}</a>
+                </div>
+              </mat-cell>
             </ng-container>
 
             <mat-header-row *matHeaderRowDef="colDefs(wwc.dataSource.columns)"></mat-header-row>

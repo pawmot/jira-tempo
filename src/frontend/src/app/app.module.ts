@@ -11,12 +11,12 @@ import {RequiredIfDirective, SettingsComponent} from './settings/settings.compon
 import {SettingsService} from './settings.service';
 import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
-import { TempoComponent } from './tempo/tempo.component';
-import { TempoService } from './tempo.service';
+import {TempoComponent} from './tempo/tempo.component';
+import {TempoService} from './tempo.service';
 
 const appRoutes: Routes = [
   {path: 'settings', component: SettingsComponent},
-  {path: '', component: TempoComponent }
+  {path: '', component: TempoComponent}
 ];
 
 @NgModule({
