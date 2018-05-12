@@ -6,13 +6,29 @@ import {
   MatIconModule,
   MatInputModule,
   MatListModule,
+  MatSidenavModule,
+  MatSlideToggleModule,
   MatTableModule,
   MatTabsModule,
   MatToolbarModule
 } from "@angular/material";
 
+const ngMods = [
+  MatToolbarModule,
+  MatIconModule,
+  MatButtonModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatChipsModule,
+  MatListModule,
+  MatTableModule,
+  MatTabsModule,
+  MatSidenavModule,
+  MatSlideToggleModule];
+
 @NgModule({
-  imports: [MatToolbarModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatChipsModule, MatListModule, MatTableModule, MatTabsModule],
-  exports: [MatToolbarModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatChipsModule, MatListModule, MatTableModule, MatTabsModule]
+  imports: ngMods,
+  exports: ngMods
 })
-export class NgDepsModule {}
+export class NgDepsModule {
+}

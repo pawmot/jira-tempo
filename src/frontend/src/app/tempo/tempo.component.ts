@@ -1,5 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {TempoService, Worklog} from "../tempo.service";
+import {Observable, combineLatest} from "rxjs";
+import {Subject} from "rxjs/internal/Subject";
+import {e} from "@angular/core/src/render3";
 
 @Component({
   selector: 'app-tempo',
@@ -8,22 +11,29 @@ import {TempoService, Worklog} from "../tempo.service";
 })
 export class TempoComponent implements OnInit {
 
+  detailsSubject = new Subject<boolean>();
+  details$ = this.detailsSubject.asObservable();
+  worklog: Observable<Worklog[]>;
   model: WorklogAndDataSource[];
 
   constructor(private tempoService: TempoService) {
   }
 
   ngOnInit() {
-    this.tempoService.getWorklogs()
-      .subscribe(ws => {
+    this.details$.subscribe(console.log);
+    this.worklog = this.tempoService.getWorklogs();
+    combineLatest(this.worklog, this.details$)
+      .subscribe(e => {
+        const [ws, showDetails] = e;
         ws.sort((a, b) => a.start.getTime() - b.start.getTime());
         this.model = ws.map(w => {
-          return new WorklogAndDataSource(w, TempoComponent.createDataSource(w));
+          return new WorklogAndDataSource(w, TempoComponent.createDataSource(w, showDetails));
         })
-      })
+      });
+    this.detailsSubject.next(false);
   }
 
-  private static createDataSource(w: Worklog): DataSource {
+  private static createDataSource(w: Worklog, showDetails: boolean): DataSource {
     let cols = this.createColumns(w.start, w.end);
 
     let data = new Map<string, object[]>();
@@ -31,15 +41,17 @@ export class TempoComponent implements OnInit {
     w.personalWorklogs.forEach(pw => {
       let rows = [];
 
-      pw.issues.forEach(i => {
-        let row = {};
-        row["issue"] = i.key;
-        i.hours.forEach(d => {
-          row[d.date.toDateString()] = d.hours;
-        });
+      if (showDetails) {
+        pw.issues.forEach(i => {
+          let row = {};
+          row["issue"] = i.key;
+          i.hours.forEach(d => {
+            row[d.date.toDateString()] = d.hours;
+          });
 
-        rows.push(row);
-      });
+          rows.push(row);
+        });
+      }
 
       let row = {};
       row["issue"] = "Summary";
