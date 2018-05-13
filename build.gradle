@@ -66,20 +66,28 @@ compileTestKotlin {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
+    gradleVersion = '4.7'
 }
 
-task frontendDist() {
+task frontendDistBuild(type: Exec) {
+    group = BasePlugin.BUILD_GROUP
+    workingDir "$projectDir/src/main/frontend"
+    commandLine 'ng', 'build', '--prod'
+}
+
+task frontendDistCopy() {
     def workingDirectory = new File(project.buildDir.toString(), 'docker')
     copy {
-        from 'src/frontend/dist'
+        from 'src/main/frontend/dist'
         into "$workingDirectory/dist"
     }
 }
+
+frontendDistCopy.dependsOn(frontendDistBuild)
 
 docker {
     imageName "pawmot/jira-tempo"
     tag project.version
 }
 
-dockerize.dependsOn(frontendDist)
+dockerize.dependsOn(frontendDistCopy)
