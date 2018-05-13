@@ -4,3 +4,8 @@ logging:
 
 encrypt:
   secret: "kp3j7LCeSLSX^gYJbyKsV+XJJ^&frcEj&WAC=pnTk5?hXLwVQE?Gu6dvU2X4"
+
+spring:
+  data:
+    mongodb:
+      host: localhost

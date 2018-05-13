@@ -2,7 +2,7 @@ spring:
   data:
     mongodb:
       database: jiraTempo
-      host: localhost
+      host: mongo
   main:
     web-application-type: reactive
   resources:
@@ -12,5 +12,5 @@ spring:
 
 
 jiraTempo:
-  tempoRefreshCron: "*/10 * * * * *"
+  tempoRefreshCron: "*/1_S0 * * * * *"
 

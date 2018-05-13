@@ -17,7 +17,7 @@ buildscript {
 }
 
 group 'com.pawmot'
-version '0.2-SNAPSHOT'
+version '0.2'
 
 apply plugin: 'kotlin'
 apply plugin: 'kotlin-spring'
@@ -69,18 +69,27 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.7'
 }
 
+task frontendNpmInstall(type:Exec) {
+    group = BasePlugin.BUILD_GROUP
+    workingDir "$projectDir/src/main/frontend"
+    commandLine 'npm', 'install'
+    inputs.files 'package.json'
+    outputs.dir 'node_modules'
+}
+
 task frontendDistBuild(type: Exec) {
     group = BasePlugin.BUILD_GROUP
     workingDir "$projectDir/src/main/frontend"
     commandLine 'ng', 'build', '--prod'
+    inputs.dir "$projectDir/src/main/frontend"
+    outputs.dir "$projectDir/src/main/frontend/dist"
 }
 
-task frontendDistCopy() {
-    def workingDirectory = new File(project.buildDir.toString(), 'docker')
-    copy {
-        from 'src/main/frontend/dist'
-        into "$workingDirectory/dist"
-    }
+frontendDistBuild.dependsOn(frontendNpmInstall)
+
+task frontendDistCopy(type: Copy) {
+    from 'src/main/frontend/dist'
+    into "${project.buildDir}/docker/dist"
 }
 
 frontendDistCopy.dependsOn(frontendDistBuild)
