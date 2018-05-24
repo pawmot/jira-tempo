@@ -15,7 +15,11 @@
               <mat-header-cell *matHeaderCellDef>{{ col.header }}</mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <!-- TODO: Come up with a cleaner solution -->
-                <div *ngIf="col.header !== 'Issue'"><span>{{ col.cellVal(row) | hoursAndMinutes }}</span></div>
+                <div *ngIf="col.header !== 'Issue'">
+                  <span [ngClass]="{'too-much': col.loggedTooMuch(row), 'too-little': col.loggedTooLittle(row)}">
+                    {{ col.cellVal(row) | hoursAndMinutes }}
+                  </span>
+                </div>
                 <div *ngIf="col.cellVal(row) === 'Summary' && col.header === 'Issue'">{{ col.cellVal(row) }}</div>
                 <div *ngIf="col.cellVal(row) !== 'Summary' && col.header === 'Issue'">
                   <a [href]="(row['url'])" target="_blank">{{ col.cellVal(row) }}</a>

@@ -3,7 +3,8 @@ import {WorklogService, Worklog} from "../worklog.service";
 import {Observable, combineLatest, concat, of, interval} from "rxjs";
 import {debounce, distinctUntilChanged} from "rxjs/operators";
 import {Subject} from "rxjs/internal/Subject";
-import {LocalDate} from "js-joda";
+import {DayOfWeek, LocalDate} from "js-joda";
+import {identity} from "rxjs/internal-compatibility";
 
 @Component({
   selector: 'app-tempo',
@@ -59,6 +60,11 @@ export class TempoComponent implements OnInit {
     w.personalWorklogs.forEach(pw => {
       let rows = [];
       let summary = {};
+      cols.map(c => c.date)
+        .filter(identity)
+        .forEach(date =>
+        summary[date.toString()] = 0
+      );
 
       pw.issues.forEach(i => {
         let row = {};
@@ -66,11 +72,7 @@ export class TempoComponent implements OnInit {
         row["url"] = i.url;
         i.loggedTime.forEach(d => {
           row[d.date.toString()] = d.seconds;
-          if (!summary[d.date.toString()]) {
-            summary[d.date.toString()] = d.seconds;
-          } else {
-            summary[d.date.toString()] += d.seconds;
-          }
+          summary[d.date.toString()] += d.seconds;
         });
 
         if (showDetails) {
@@ -98,7 +100,7 @@ export class TempoComponent implements OnInit {
     while (current <= end) {
       let idx = i++;
       let locCurrent = current;
-      columns.push(new Column(`col${idx}`, `${current.dayOfMonth()}-${current.monthValue()}`, locCurrent, c => c[locCurrent.toString()]));
+      columns.push(new Column(`col${idx}`, `${current.dayOfMonth()}-${current.monthValue()}`, locCurrent, r => r[locCurrent.toString()]));
       current = current.plusDays(1);
     }
 
@@ -126,6 +128,14 @@ class Column {
   constructor(public def: string,
               public header: string,
               public date: LocalDate,
-              public cellVal: (cell: object) => string) {
+              public cellVal: (row: object) => number) {
+    }
+
+  loggedTooMuch(row: object): boolean {
+    return row["issue"]==='Summary' && this.cellVal(row) > (8*3600);
+  }
+
+  loggedTooLittle(row: object): boolean {
+    return row["issue"]==='Summary' && this.cellVal(row) < (2 * 3600) && (this.date.dayOfWeek() !== DayOfWeek.SATURDAY && this.date.dayOfWeek() !== DayOfWeek.SUNDAY);
   }
 }
