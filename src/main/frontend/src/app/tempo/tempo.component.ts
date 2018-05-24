@@ -14,26 +14,30 @@ import {identity} from "rxjs/internal-compatibility";
 export class TempoComponent implements OnInit {
 
   detailsSubject = new Subject<boolean>();
-  details$ = this.detailsSubject.asObservable();
+  details$: Observable<boolean>;
 
   filterSubject = new Subject<string>();
   filter$: Observable<string>;
 
-  worklog: Observable<Worklog[]>;
+  worklogs$: Observable<Worklog[]>;
   model: WorklogAndDataSource[];
 
   constructor(private worklogService: WorklogService) {
   }
 
   ngOnInit() {
-    this.filterSubject.asObservable().subscribe(console.log);
-    this.filter$ = concat(of(""), this.filterSubject.asObservable().pipe(
+    this.filter$ = concat(of(localStorage.getItem("filter") || ""), this.filterSubject.asObservable().pipe(
       distinctUntilChanged(),
       debounce(() => interval(300))
     ));
-    this.worklog = this.worklogService.getWorklogs();
+    this.filter$.subscribe(f => localStorage.setItem("filter", f));
 
-    combineLatest(this.worklog, this.details$, this.filter$)
+    this.details$ = concat(of(localStorage.getItem("showDetails") == "true"), this.detailsSubject.asObservable());
+    this.details$.subscribe(f => localStorage.setItem("showDetails", f ? "true" : "false"));
+
+    this.worklogs$ = this.worklogService.getWorklogs();
+
+    combineLatest(this.worklogs$, this.details$, this.filter$)
       .subscribe(e => {
         const [ws, showDetails, userFilter] = e;
         ws.sort((a, b) => a.start.isEqual(b.start) ? 0 : a.start.isBefore(b.start) ? -1 : 1);
@@ -48,8 +52,6 @@ export class TempoComponent implements OnInit {
           return new WorklogAndDataSource(w, TempoComponent.createDataSource(w, showDetails));
         })
       });
-
-    this.detailsSubject.next(false);
   }
 
   private static createDataSource(w: Worklog, showDetails: boolean): DataSource {
@@ -109,6 +111,14 @@ export class TempoComponent implements OnInit {
 
   colDefs(cs: Column[]): string[] {
     return cs.map(c => c.def);
+  }
+
+  getInitialFilter(): string {
+    return localStorage.getItem("filter") || "";
+  }
+
+  getInitialShowDetails(): boolean {
+    return localStorage.getItem("showDetails") == "true";
   }
 }
 

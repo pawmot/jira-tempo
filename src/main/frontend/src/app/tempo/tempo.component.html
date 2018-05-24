@@ -1,8 +1,8 @@
 <mat-drawer-container>
   <mat-drawer mode="side" opened class="tempo-sidenav mat-elevation-z3">
-    <mat-slide-toggle (change)="detailsSubject.next($event.checked)">Details</mat-slide-toggle>
+    <mat-slide-toggle (change)="detailsSubject.next($event.checked)" [checked]="getInitialShowDetails()">Details</mat-slide-toggle>
     <mat-form-field>
-      <input (keyup)="filterSubject.next($event.target.value)" matInput placeholder="Filter users"/>
+      <input (keyup)="filterSubject.next($event.target.value)" matInput placeholder="Filter users" [value]="getInitialFilter()"/>
     </mat-form-field>
   </mat-drawer>
   <mat-drawer-content>
