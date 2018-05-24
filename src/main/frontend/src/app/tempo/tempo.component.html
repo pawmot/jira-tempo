@@ -1,5 +1,5 @@
 <mat-drawer-container>
-  <mat-drawer mode="side" opened class="tempo-sidenav">
+  <mat-drawer mode="side" opened class="tempo-sidenav mat-elevation-z3">
     <mat-slide-toggle (change)="detailsSubject.next($event.checked)">Details</mat-slide-toggle>
     <mat-form-field>
       <input (keyup)="filterSubject.next($event.target.value)" matInput placeholder="Filter users"/>
@@ -15,7 +15,8 @@
               <mat-header-cell *matHeaderCellDef>{{ col.header }}</mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <!-- TODO: Come up with a cleaner solution -->
-                <div *ngIf="col.cellVal(row) === 'Summary' || col.header !== 'Issue'">{{ col.cellVal(row) }}</div>
+                <div *ngIf="col.header !== 'Issue'"><span>{{ col.cellVal(row) | hoursAndMinutes }}</span></div>
+                <div *ngIf="col.cellVal(row) === 'Summary' && col.header === 'Issue'">{{ col.cellVal(row) }}</div>
                 <div *ngIf="col.cellVal(row) !== 'Summary' && col.header === 'Issue'">
                   <a [href]="(row['url'])" target="_blank">{{ col.cellVal(row) }}</a>
                 </div>

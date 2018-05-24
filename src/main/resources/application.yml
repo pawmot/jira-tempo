@@ -12,5 +12,5 @@ spring:
 
 
 jiraTempo:
-  tempoRefreshCron: "*/1_S0 * * * * *"
+  tempoRefreshCron: "*/10 * * * * *"
 

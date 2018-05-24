@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 buildscript {
-    ext.kotlin_ver = '1.2.40'
+    ext.kotlin_ver = '1.2.41'
 
     repositories {
         mavenCentral()

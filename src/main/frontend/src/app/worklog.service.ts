@@ -4,7 +4,7 @@ import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
 @Injectable()
-export class TempoService {
+export class WorklogService {
 
   constructor(private http: HttpClient) {
   }
@@ -18,14 +18,11 @@ export class TempoService {
 
           w.personalWorklogs.forEach(pw => {
             pw.issues.forEach(i => {
-              i.hours.forEach(d => {
+              i.loggedTime.forEach(d => {
+                console.log(d.date);
                 d.date = new Date(d.date);
               })
             });
-
-            pw.summary.forEach(d => {
-              d.date = new Date(d.date);
-            })
           })
         });
 
@@ -43,16 +40,15 @@ export interface Worklog {
 export interface PersonalWorklog {
   userName: string;
   issues: IssueWorklog[];
-  summary: DateHours[];
 }
 
 export interface IssueWorklog {
   key: string;
-  hours: DateHours[];
+  loggedTime: SecondsLoggedOnDate[];
   url: string;
 }
 
-export interface DateHours {
+export interface SecondsLoggedOnDate {
   date: Date;
-  hours: string;
+  seconds: number;
 }

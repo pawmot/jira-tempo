@@ -4,7 +4,7 @@ import com.pawmot.jiraTempo.domain.settings.Settings
 import com.pawmot.jiraTempo.domain.settings.SettingsRepository
 import com.pawmot.jiraTempo.domain.worklog.WorklogItem
 import com.pawmot.jiraTempo.domain.worklog.WorklogRepository
-import com.pawmot.jiraTempo.web.dto.DateHoursDto
+import com.pawmot.jiraTempo.web.dto.SecondsLoggedOnDateDto
 import com.pawmot.jiraTempo.web.dto.IssueWorklogDto
 import com.pawmot.jiraTempo.web.dto.PersonalWorklogDto
 import com.pawmot.jiraTempo.web.dto.WorklogDto
@@ -31,31 +31,22 @@ class WorklogHandler(private val worklogRepository: WorklogRepository, private v
         return settings.users.map { user ->
             val userItems = items.filter { it.user == user }
 
-            val summary = summarizePerDay(userItems)
-
             val byIssue = userItems
                     .groupBy { it.issueKey }
                     .mapValues { summarizePerDay(it.value) }
                     .map { IssueWorklogDto(it.key, it.value, "${Paths.get(settings.jiraUrl, "browse", it.key)}") }
-                    .sortedBy { it.hours.map { it.date }.min() }
+                    .sortedBy { it.loggedTime.map { it.date }.min() }
 
-            PersonalWorklogDto(user, byIssue, summary)
+            PersonalWorklogDto(user, byIssue)
         }
-                .sortedBy { it.userName  }
+                .sortedBy { it.userName }
     }
 
-    private fun summarizePerDay(userItems: List<WorklogItem>): List<DateHoursDto> {
+    private fun summarizePerDay(userItems: List<WorklogItem>): List<SecondsLoggedOnDateDto> {
         return userItems
                 .groupBy { it.date }
                 .mapValues { it.value.map { it.secondsLogged }.sum() }
-                .map { DateHoursDto(it.key, it.value.toHMString()) }
+                .map { SecondsLoggedOnDateDto(it.key, it.value) }
                 .sortedBy { it.date }
-    }
-
-    private fun Int.toHMString(): String {
-        val hours = this / 3600
-        val minutes = (this / 60 - hours * 60)
-
-        return "${hours}h ${minutes}m"
     }
 }

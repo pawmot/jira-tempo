@@ -5,7 +5,7 @@ volumes:
 
 services:
   jira-tempo:
-    image: pawmot/jira-tempo:0.1-SNAPSHOT
+    image: pawmot/jira-tempo:0.3-SNAPSHOT
     ports:
       - 8080:8080
 

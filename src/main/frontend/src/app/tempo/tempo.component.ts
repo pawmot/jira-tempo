@@ -1,9 +1,8 @@
-import {Component, OnInit, Pipe, PipeTransform, Sanitizer, SecurityContext} from '@angular/core';
-import {TempoService, Worklog} from "../tempo.service";
+import {Component, OnInit} from '@angular/core';
+import {WorklogService, Worklog} from "../worklog.service";
 import {Observable, combineLatest, concat, of, interval} from "rxjs";
-import {map, debounce, distinctUntilChanged} from "rxjs/operators";
+import {debounce, distinctUntilChanged} from "rxjs/operators";
 import {Subject} from "rxjs/internal/Subject";
-import {forEach} from "@angular/router/src/utils/collection";
 
 @Component({
   selector: 'app-tempo',
@@ -21,7 +20,7 @@ export class TempoComponent implements OnInit {
   worklog: Observable<Worklog[]>;
   model: WorklogAndDataSource[];
 
-  constructor(private tempoService: TempoService) {
+  constructor(private worklogService: WorklogService) {
   }
 
   ngOnInit() {
@@ -30,7 +29,7 @@ export class TempoComponent implements OnInit {
       distinctUntilChanged(),
       debounce(() => interval(300))
     ));
-    this.worklog = this.tempoService.getWorklogs();
+    this.worklog = this.worklogService.getWorklogs();
 
     combineLatest(this.worklog, this.details$, this.filter$)
       .subscribe(e => {
@@ -58,26 +57,28 @@ export class TempoComponent implements OnInit {
 
     w.personalWorklogs.forEach(pw => {
       let rows = [];
+      let summary = {};
 
-      if (showDetails) {
-        pw.issues.forEach(i => {
-          let row = {};
-          row["issue"] = i.key;
-          row["url"] = i.url;
-          i.hours.forEach(d => {
-            row[d.date.toDateString()] = d.hours;
-          });
-
-          rows.push(row);
+      pw.issues.forEach(i => {
+        let row = {};
+        row["issue"] = i.key;
+        row["url"] = i.url;
+        i.loggedTime.forEach(d => {
+          row[d.date.toDateString()] = d.seconds;
+          if (!summary[d.date.toDateString()]) {
+            summary[d.date.toDateString()] = d.seconds;
+          } else {
+            summary[d.date.toDateString()] += d.seconds;
+          }
         });
-      }
 
-      let row = {};
-      row["issue"] = "Summary";
-      pw.summary.forEach(d => {
-        row[d.date.toDateString()] = d.hours;
+        if (showDetails) {
+          rows.push(row);
+        }
       });
-      rows.push(row);
+
+      summary["issue"] = "Summary";
+      rows.push(summary);
 
       data[pw.userName] = rows;
     });
@@ -128,5 +129,6 @@ class Column {
   constructor(public def: string,
               public header: string,
               public date: Date,
-              public cellVal: (cell: object) => string) {}
+              public cellVal: (cell: object) => string) {
+  }
 }

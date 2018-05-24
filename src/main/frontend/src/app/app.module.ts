@@ -12,7 +12,8 @@ import {SettingsService} from './settings.service';
 import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
 import {TempoComponent} from './tempo/tempo.component';
-import {TempoService} from './tempo.service';
+import {WorklogService} from './worklog.service';
+import {HoursAndMinutesPipe} from "./tempo/hoursAndMinutes.pipe";
 
 const appRoutes: Routes = [
   {path: 'settings', component: SettingsComponent},
@@ -24,7 +25,8 @@ const appRoutes: Routes = [
     AppComponent,
     SettingsComponent,
     TempoComponent,
-    RequiredIfDirective
+    RequiredIfDirective,
+    HoursAndMinutesPipe
   ],
   imports: [
     BrowserModule,
@@ -37,7 +39,7 @@ const appRoutes: Routes = [
       {enableTracing: !environment.production}
     )
   ],
-  providers: [SettingsService, TempoService],
+  providers: [SettingsService, WorklogService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
