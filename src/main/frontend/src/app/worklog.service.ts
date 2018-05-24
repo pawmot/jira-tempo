@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {LocalDate} from "js-joda";
 
 @Injectable()
 export class WorklogService {
@@ -13,14 +14,14 @@ export class WorklogService {
     return this.http.get<Worklog[]>("/api/worklog")
       .pipe(map(ws => {
         ws.forEach(w => {
-          w.start = new Date(w.start);
-          w.end = new Date(w.end);
+          // TODO fix the type hack with strings and LocalDate
+          w.start = LocalDate.parse(<string><any>w.start);
+          w.end = LocalDate.parse(<string><any>w.end);
 
           w.personalWorklogs.forEach(pw => {
             pw.issues.forEach(i => {
               i.loggedTime.forEach(d => {
-                console.log(d.date);
-                d.date = new Date(d.date);
+                d.date = LocalDate.parse(<string><any>d.date);
               })
             });
           })
@@ -32,8 +33,8 @@ export class WorklogService {
 }
 
 export interface Worklog {
-  start: Date;
-  end: Date;
+  start: LocalDate;
+  end: LocalDate;
   personalWorklogs: PersonalWorklog[]
 }
 
@@ -49,6 +50,6 @@ export interface IssueWorklog {
 }
 
 export interface SecondsLoggedOnDate {
-  date: Date;
+  date: LocalDate;
   seconds: number;
 }

@@ -3,6 +3,7 @@ import {WorklogService, Worklog} from "../worklog.service";
 import {Observable, combineLatest, concat, of, interval} from "rxjs";
 import {debounce, distinctUntilChanged} from "rxjs/operators";
 import {Subject} from "rxjs/internal/Subject";
+import {LocalDate} from "js-joda";
 
 @Component({
   selector: 'app-tempo',
@@ -34,7 +35,7 @@ export class TempoComponent implements OnInit {
     combineLatest(this.worklog, this.details$, this.filter$)
       .subscribe(e => {
         const [ws, showDetails, userFilter] = e;
-        ws.sort((a, b) => a.start.getTime() - b.start.getTime());
+        ws.sort((a, b) => a.start.isEqual(b.start) ? 0 : a.start.isBefore(b.start) ? -1 : 1);
         this.model = ws.map(w => {
           if (userFilter) {
             w = {
@@ -64,11 +65,11 @@ export class TempoComponent implements OnInit {
         row["issue"] = i.key;
         row["url"] = i.url;
         i.loggedTime.forEach(d => {
-          row[d.date.toDateString()] = d.seconds;
-          if (!summary[d.date.toDateString()]) {
-            summary[d.date.toDateString()] = d.seconds;
+          row[d.date.toString()] = d.seconds;
+          if (!summary[d.date.toString()]) {
+            summary[d.date.toString()] = d.seconds;
           } else {
-            summary[d.date.toDateString()] += d.seconds;
+            summary[d.date.toString()] += d.seconds;
           }
         });
 
@@ -86,19 +87,19 @@ export class TempoComponent implements OnInit {
     return new DataSource(cols, data);
   }
 
-  private static createColumns(start: Date, end: Date): Column[] {
+  private static createColumns(start: LocalDate, end: LocalDate): Column[] {
     let columns: Column[] = [];
 
-    let current = new Date(start);
+    let current = start;
 
     columns.push(new Column("issue", "Issue", null, c => c["issue"]));
 
     let i = 1;
     while (current <= end) {
       let idx = i++;
-      let locCurrent = new Date(current);
-      columns.push(new Column(`col${idx}`, `${current.getDate()}-${current.getMonth() + 1}`, locCurrent, c => c[locCurrent.toDateString()]));
-      current.setTime(current.getTime() + 86400000)
+      let locCurrent = current;
+      columns.push(new Column(`col${idx}`, `${current.dayOfMonth()}-${current.monthValue()}`, locCurrent, c => c[locCurrent.toString()]));
+      current = current.plusDays(1);
     }
 
     return columns;
@@ -106,10 +107,6 @@ export class TempoComponent implements OnInit {
 
   colDefs(cs: Column[]): string[] {
     return cs.map(c => c.def);
-  }
-
-  formatDate(d: Date): string {
-    return d.toISOString().split('T')[0];
   }
 }
 
@@ -128,7 +125,7 @@ class DataSource {
 class Column {
   constructor(public def: string,
               public header: string,
-              public date: Date,
+              public date: LocalDate,
               public cellVal: (cell: object) => string) {
   }
 }
